@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block nav %}
+<!-- No nav bar on landing page -->
+{% endblock nav %}
+
+{% block content %}
+<div class="landing-container">
+    <h1>Welcome to TravelMate ✈️</h1>
+    <p>Your personalized travel assistant for packing, planning, and weather insights.</p>
+    <div class="button-group">
+        <a href="{% url 'accounts.signup' %}" class="btn">Sign Up</a>
+        <a href="{% url 'accounts.login' %}" class="btn btn-outline">Log In</a>
+    </div>
+</div>
+
+<style>
+    .landing-container {
+        text-align: center;
+        margin-top: 80px;
+    }
+
+    .landing-container h1 {
+        font-size: 2.5rem;
+        color: #1E90FF;
+        margin-bottom: 20px;
+    }
+
+    .landing-container p {
+        font-size: 1.2rem;
+        color: #555;
+        margin-bottom: 30px;
+    }
+
+    .button-group {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+    }
+
+    .btn {
+        background-color: #1E90FF;
+        color: white;
+        padding: 12px 24px;
+        border: none;
+        border-radius: 6px;
+        font-size: 16px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: background-color 0.3s;
+    }
+
+    .btn:hover {
+        background-color: #187bcd;
+    }
+
+    .btn-outline {
+        background-color: white;
+        color: #1E90FF;
+        border: 2px solid #1E90FF;
+    }
+
+    .btn-outline:hover {
+        background-color: #1E90FF;
+        color: white;
+    }
+</style>
+{% endblock %}
