@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Create a New Trip</h2>
+
+<form method="POST">
+  {% csrf_token %}
+
+  <label for="autocomplete">Location</label>
+  <div id="place-autocomplete-container"></div>
+
+  <!-- Hidden fields for backend -->
+  <input type="hidden" name="location" id="location">
+  <input type="hidden" name="latitude" id="latitude">
+  <input type="hidden" name="longitude" id="longitude">
+
+  <!-- Start Date -->
+  <div>
+    {{ form.start_date.label_tag }}
+    {{ form.start_date }}
+    {{ form.start_date.errors }}
+  </div>
+
+  <!-- End Date -->
+  <div>
+    {{ form.end_date.label_tag }}
+    {{ form.end_date }}
+    {{ form.end_date.errors }}
+  </div>
+
+  <!-- Activities -->
+  <div>
+    {{ form.activities.label_tag }}
+    {{ form.activities }}
+    {{ form.activities.errors }}
+  </div>
+
+  <!-- Submit -->
+  <button type="submit">Next →</button>
+</form>
+
+<style>
+  #place-autocomplete-container {
+    margin: 12px 0;
+    border: 1px solid #ccc;
+    padding: 6px;
+  }
+
+  select[multiple] {
+    width: 100%;
+    padding: 8px;
+    border-radius: 4px;
+    font-size: 1rem;
+  }
+
+  place-autocomplete {
+    width: 100%;
+  }
+</style>
+
+<!-- Google Maps JS  -->
+<script>
+  async function initAutocomplete() {
+    await google.maps.importLibrary("places");
+
+    const placeAutocomplete = new google.maps.places.PlaceAutocompleteElement();
+    placeAutocomplete.id = "autocomplete";
+
+    document.getElementById("place-autocomplete-container").appendChild(placeAutocomplete);
+
+    placeAutocomplete.addEventListener("gmp-select", async ({ placePrediction }) => {
+        const place = placePrediction.toPlace();
+        await place.fetchFields({ fields: ["displayName", "formattedAddress", "location"] });
+        document.getElementById("location").value = place.formattedAddress || place.displayName || "";
+
+        document.getElementById("latitude").value = place.location.lat();
+        document.getElementById("longitude").value = place.location.lng();
+
+        console.log("✅ Selected place:", place.toJSON());
+        });
+
+  }
+
+  window.initAutocomplete = initAutocomplete;
+</script>
+
+<script
+  src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_api_key }}&libraries=places&v=beta&callback=initAutocomplete"
+  async defer>
+</script>
+
+
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<script>
+  $(document).ready(function () {
+    $('.activity-select').select2({
+      placeholder: "Select activities...",
+      width: '100%',
+      allowClear: true
+    });
+  });
+</script>
+
+{% endblock %}

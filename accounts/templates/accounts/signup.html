@@ -1,26 +1,31 @@
 {% extends 'base.html' %}
-
 {% block nav %}{% endblock %}
 
 {% block content %}
-<div class="p-3 mt-4">
-  <div class="container">
-    <div class="row justify-content-center">
-      <div class="col-md-8">
-        <div class="card shadow p-3 mb-4 rounded">
-          <div class="card-body">
-            <h2>Sign Up</h2>
-            <hr />
-            <form method="POST">
-              {% csrf_token %}
-              {{ template_data.form.as_p }}
-              <button type="submit"
-                class="btn bg-dark text-white">Sign Up
-              </button>
-            </form>
-          </div>
+<div style="padding: 40px 0; background-color: #f4f4f4;">
+  <div class="container" style="max-width: 500px; margin: 0 auto;">
+    <div style="background-color: white; border-radius: 12px; padding: 30px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+      <h2 style="text-align: center; color: #1E90FF; margin-bottom: 20px;">Create Your Account</h2>
+      <form method="POST">
+        {% csrf_token %}
+        <div style="display: flex; flex-direction: column; gap: 15px;">
+          {{ template_data.form.as_p }}
         </div>
-      </div>
+        <button type="submit" style="
+          margin-top: 20px;
+          width: 100%;
+          background-color: #1E90FF;
+          border: none;
+          color: white;
+          padding: 12px;
+          border-radius: 8px;
+          font-weight: bold;
+          font-size: 16px;
+          cursor: pointer;
+          transition: background-color 0.3s ease;">
+          Sign Up
+        </button>
+      </form>
     </div>
   </div>
 </div>
