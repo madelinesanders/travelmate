@@ -2,6 +2,8 @@ from django.shortcuts import render, redirect
 from .forms import TripForm
 from .models import Trip
 from django.conf import settings
+from django.views.decorators.http import require_POST
+from django.shortcuts import get_object_or_404
 
 def create_trip(request):
     if request.method == 'POST':
@@ -24,3 +26,8 @@ def create_trip(request):
 def index(request):
     trips = Trip.objects.filter(user=request.user)
     return render(request, 'trips/index.html', {'trips': trips})
+
+def delete_trip(request, trip_id):
+    trip = get_object_or_404(Trip, id=trip_id, user=request.user)
+    trip.delete()
+    return redirect('trips.index')
