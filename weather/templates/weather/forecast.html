@@ -1,0 +1,183 @@
+
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+
+  <h2 class="mb-4 text-center">Weather Forecast for {{ location_name }}</h2>
+
+  <!-- Extreme Weather Advisory -->
+  {% if extreme_alerts %}
+    <div class="border border-danger rounded shadow-sm p-4 mb-4" style="background-color: #fcebea;">
+      <div class="d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="red" class="me-2" viewBox="0 0 16 16">
+            <path d="M8.982 1.566a1.13 1.13 0 0 0-1.964 0L.165 13.233c-.457.778.091 1.767.982 1.767h13.706c.89 0 1.438-.99.982-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1-2.002 0 1 1 0 0 1 2.002 0z"/>
+          </svg>
+          <h5 class="m-0 text-danger fw-bold">Extreme Weather Advisory</h5>
+        </div>
+        <button class="btn btn-sm btn-outline-danger" type="button" data-bs-toggle="collapse" data-bs-target="#extremeAlertContent" aria-expanded="false" aria-controls="extremeAlertContent">
+          Show Details
+        </button>
+      </div>
+      <div class="collapse mt-3" id="extremeAlertContent">
+        <ul class="mb-0 ps-3 small" id="extremeAlertList">
+          {% for alert in extreme_alerts %}
+            <li class="mb-1" data-c="{{ alert.c }}" data-type="{{ alert.type }}">
+              {{ alert.text }}{% if alert.c is not None %} (<span class="alert-temp">{{ alert.c }}</span>°<span class="unit">C</span>){% endif %}
+            </li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  {% endif %}
+
+  <!-- Header Controls -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="m-0">Daily Forecast</h4>
+    <div>
+      <button id="toggleUnit" class="btn btn-outline-secondary btn-sm me-2">Toggle °C / °F</button>
+      <select id="sortBy" class="form-select form-select-sm d-inline-block w-auto">
+        <option value="asc" selected>Sort by Date ↑</option>
+        <option value="desc">Sort by Date ↓</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Forecast Cards -->
+  <div id="forecastContainer" class="row row-cols-1 row-cols-md-4 g-4 mb-4">
+    {% for day in forecast_data %}
+    <div class="col forecast-card" data-date="{{ day.raw_date }}">
+      <div class="card h-100 text-center">
+        <div class="card-body">
+          <h6 class="card-title">{{ day.date }}</h6>
+          <img src="{{ day.icon_url }}" alt="icon" width="48" class="my-2" />
+          <p class="mb-1"><strong>High:</strong> <span class="temp" data-c="{{ day.temp_max }}">{{ day.temp_max }}</span>°<span class="unit">C</span></p>
+          <p class="mb-1"><strong>Low:</strong> <span class="temp" data-c="{{ day.temp_min }}">{{ day.temp_min }}</span>°<span class="unit">C</span></p>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Historical Weather -->
+  {% if historical_data %}
+    <h4 class="mb-3">Historical Data (Same Dates Last Year)</h4>
+    <div class="row row-cols-1 row-cols-md-4 g-4 mb-4">
+      {% for day in historical_data %}
+      <div class="col">
+        <div class="card h-100 text-center bg-light">
+          <div class="card-body">
+            <h6 class="card-title">{{ day.date }}</h6>
+            <img src="{{ day.icon_url }}" alt="icon" width="48" class="my-2" />
+            <p class="mb-1"><span class="temp" data-c="{{ day.temp }}">{{ day.temp }}</span>°<span class="unit">C</span></p>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <!-- Monthly Climate Averages -->
+  {% if averages %}
+    <h4 class="mb-3">Monthly Climate Averages</h4>
+    <ul class="list-group mb-4">
+      {% for month, avg in averages.items %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          {{ month|capfirst }}
+          <span><span class="temp" data-c="{{ avg }}">{{ avg|default:"N/A" }}</span>°<span class="unit">C</span></span>
+        </li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+
+  <!-- Chart Section -->
+  <h4 class="mb-3">Temperature Trend</h4>
+  <canvas id="forecastChart" height="100"></canvas>
+</div>
+
+<!-- Chart.js + Bootstrap Bundle -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const maxTempsC = {{ max_temps|safe }};
+  const minTempsC = {{ min_temps|safe }};
+  let usingFahrenheit = false;
+
+  function convertTemp(c, toF) {
+    return toF ? Math.round(c * 9 / 5 + 32) : Math.round(c);
+  }
+
+  const ctx = document.getElementById("forecastChart").getContext("2d");
+  const forecastChart = new Chart(ctx, {
+    type: "line",
+    data: {
+      labels: {{ labels|safe }},
+      datasets: [
+        {
+          label: "Max Temp (°C)",
+          data: maxTempsC,
+          borderColor: "red",
+          fill: false
+        },
+        {
+          label: "Min Temp (°C)",
+          data: minTempsC,
+          borderColor: "blue",
+          fill: false
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y: { beginAtZero: false }
+      }
+    }
+  });
+
+  document.getElementById("toggleUnit").addEventListener("click", () => {
+    usingFahrenheit = !usingFahrenheit;
+    const unit = usingFahrenheit ? "F" : "C";
+
+    document.querySelectorAll(".temp").forEach(span => {
+      const c = parseFloat(span.dataset.c);
+      if (!isNaN(c)) span.textContent = convertTemp(c, usingFahrenheit);
+    });
+    document.querySelectorAll(".unit").forEach(el => el.textContent = unit);
+
+    forecastChart.data.datasets[0].data = maxTempsC.map(c => convertTemp(c, usingFahrenheit));
+    forecastChart.data.datasets[1].data = minTempsC.map(c => convertTemp(c, usingFahrenheit));
+    forecastChart.data.datasets[0].label = "Max Temp (°" + unit + ")";
+    forecastChart.data.datasets[1].label = "Min Temp (°" + unit + ")";
+    forecastChart.update();
+
+    document.querySelectorAll("#extremeAlertList li").forEach(li => {
+      const c = parseFloat(li.dataset.c);
+      if (!isNaN(c)) {
+        const span = li.querySelector(".alert-temp");
+        if (span) span.textContent = convertTemp(c, usingFahrenheit);
+        li.querySelector(".unit").textContent = unit;
+      }
+    });
+  });
+
+  document.getElementById("sortBy").addEventListener("change", (e) => {
+    const direction = e.target.value;
+    const container = document.getElementById("forecastContainer");
+    const cards = Array.from(container.querySelectorAll(".forecast-card"));
+
+    cards.sort((a, b) => {
+      const dateA = new Date(a.dataset.date);
+      const dateB = new Date(b.dataset.date);
+      return direction === "asc" ? dateA - dateB : dateB - dateA;
+    });
+
+    cards.forEach(card => container.appendChild(card));
+  });
+});
+</script>
+{% endblock %}

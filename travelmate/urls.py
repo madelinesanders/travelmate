@@ -24,4 +24,5 @@ urlpatterns = [
     path('', accounts_views.landing, name='landing'),
     path('trips/', include('trips.urls')),
     path('accounts/', include('accounts.urls')),
+    path('weather/', include('weather.urls')),
 ]

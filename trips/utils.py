@@ -1,6 +1,7 @@
 from geopy.geocoders import Nominatim
 from geopy.exc import GeopyError
 
+
 def get_lat_lon_from_location(location_name):
     geolocator = Nominatim(user_agent="my_app")
     try:

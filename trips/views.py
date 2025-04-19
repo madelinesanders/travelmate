@@ -13,7 +13,7 @@ def create_trip(request):
             trip.longitude = request.POST.get('longitude')
             trip.save()
             form.save_m2m()
-            return redirect('trips.index')
+            return redirect('weather_forecast', trip_id=trip.id)
     else:
         form = TripForm()
     return render(request, 'trips/planner.html', {
