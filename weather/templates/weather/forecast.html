@@ -1,4 +1,3 @@
-
 {% extends "base.html" %}
 {% load static %}
 
@@ -6,6 +5,43 @@
 <div class="container mt-4">
 
   <h2 class="mb-4 text-center">Weather Forecast for {{ location_name }}</h2>
+
+  <!-- Action Buttons -->
+  <div class="text-center mb-4">
+    <!-- Get Packing List Button -->
+    <a href="{% url 'packing_list' trip.id %}" class="btn" id="packing-list-button" style="
+        background-color: #1E90FF;
+        color: white;
+        padding: 10px 20px;
+        font-weight: bold;
+        border-radius: 8px;
+        text-decoration: none;
+        transition: background-color 0.3s ease;
+    ">
+      Get Packing List
+    </a>
+
+    <!-- Get Travel Tips Button -->
+    <a href="{% url 'travel_tips' trip.id %}" class="btn ms-2" id="travel-tips-button" style="
+        background-color: #1E90FF;
+        color: white;
+        padding: 10px 20px;
+        font-weight: bold;
+        border-radius: 8px;
+        text-decoration: none;
+        transition: background-color 0.3s ease;
+    ">
+      Get Travel Tips
+    </a>
+  </div>
+
+  <!-- Loading Spinner (hidden initially) -->
+  <div id="loading-spinner" class="text-center mt-4" style="display: none;">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+    <p>Loading, please wait...</p>
+  </div>
 
   <!-- Extreme Weather Advisory -->
   {% if extreme_alerts %}
@@ -61,46 +97,27 @@
     {% endfor %}
   </div>
 
-  <!-- Historical Weather -->
-  {% if historical_data %}
-    <h4 class="mb-3">Historical Data (Same Dates Last Year)</h4>
-    <div class="row row-cols-1 row-cols-md-4 g-4 mb-4">
-      {% for day in historical_data %}
-      <div class="col">
-        <div class="card h-100 text-center bg-light">
-          <div class="card-body">
-            <h6 class="card-title">{{ day.date }}</h6>
-            <img src="{{ day.icon_url }}" alt="icon" width="48" class="my-2" />
-            <p class="mb-1"><span class="temp" data-c="{{ day.temp }}">{{ day.temp }}</span>°<span class="unit">C</span></p>
-          </div>
-        </div>
-      </div>
-      {% endfor %}
-    </div>
-  {% endif %}
-
-  <!-- Monthly Climate Averages -->
-  {% if averages %}
-    <h4 class="mb-3">Monthly Climate Averages</h4>
-    <ul class="list-group mb-4">
-      {% for month, avg in averages.items %}
-        <li class="list-group-item d-flex justify-content-between align-items-center">
-          {{ month|capfirst }}
-          <span><span class="temp" data-c="{{ avg }}">{{ avg|default:"N/A" }}</span>°<span class="unit">C</span></span>
-        </li>
-      {% endfor %}
-    </ul>
-  {% endif %}
-
   <!-- Chart Section -->
   <h4 class="mb-3">Temperature Trend</h4>
   <canvas id="forecastChart" height="100"></canvas>
+
 </div>
 
 <!-- Chart.js + Bootstrap Bundle -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
+<!-- Spinner Show Script -->
+<script>
+document.getElementById('packing-list-button').addEventListener('click', function() {
+  document.getElementById('loading-spinner').style.display = 'block';
+});
+document.getElementById('travel-tips-button').addEventListener('click', function() {
+  document.getElementById('loading-spinner').style.display = 'block';
+});
+</script>
+
+<!-- Forecast Scripts -->
 <script>
 document.addEventListener("DOMContentLoaded", () => {
   const maxTempsC = {{ max_temps|safe }};
@@ -180,4 +197,13 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 </script>
+
+<!-- Button Hover Style -->
+<style>
+#packing-list-button:hover,
+#travel-tips-button:hover {
+    background-color: #187bcd; /* darker blue on hover */
+}
+</style>
+
 {% endblock %}

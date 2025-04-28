@@ -128,3 +128,51 @@ def forecast(request, trip_id):
         "min_temps": min_temps,
         "extreme_alerts": extreme_alerts,
     })
+
+from travelmate.ollama_client import generate_packing_list
+from django.http import HttpResponse
+
+def packing_list(request, trip_id):
+    trip = get_object_or_404(Trip, id=trip_id, user=request.user)
+
+    if not trip.packing_list:
+        print("🔵 No packing list yet, generating with Ollama...")
+        summary = f"Trip from {trip.start_date} to {trip.end_date} at {trip.location}."
+        activities = list(trip.activities.values_list('name', flat=True))
+
+        packing_list_text = generate_packing_list(summary, activities)
+
+        # Save the generated packing list
+        trip.packing_list = packing_list_text
+        trip.save()
+    else:
+        print("🟢 Loading cached packing list from database...")
+
+    return render(request, 'weather/packing_list.html', {
+        "trip": trip,
+        "packing_list": trip.packing_list,
+    })
+
+
+from travelmate.ollama_client import generate_travel_tips  # (we'll define this in a second)
+
+
+def travel_tips(request, trip_id):
+    trip = get_object_or_404(Trip, id=trip_id, user=request.user)
+
+    if not trip.travel_tips:
+        print("🔵 No travel tips yet, generating with Ollama...")
+        summary = f"Trip to {trip.location} from {trip.start_date} to {trip.end_date}."
+        travel_tips_text = generate_travel_tips(summary)
+
+        # Save the generated travel tips
+        trip.travel_tips = travel_tips_text
+        trip.save()
+    else:
+        print("🟢 Loading cached travel tips from database...")
+
+    return render(request, 'weather/travel_tips.html', {
+        "trip": trip,
+        "travel_tips": trip.travel_tips,
+    })
+

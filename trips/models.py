@@ -15,6 +15,10 @@ class Trip(models.Model):
     activities = models.ManyToManyField(Activity)
     latitude = models.FloatField(null=True, blank=True)
     longitude = models.FloatField(null=True, blank=True)
+    packing_list = models.TextField(null=True, blank=True)
+    travel_tips = models.TextField(null=True, blank=True)
+
+
 
     def __str__(self):
         return f"{self.location} ({self.start_date} - {self.end_date})"

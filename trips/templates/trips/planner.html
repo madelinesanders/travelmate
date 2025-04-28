@@ -3,6 +3,15 @@
 {% block content %}
 <h2>Create a New Trip</h2>
 
+<!-- Show Form-wide Errors -->
+{% if form.non_field_errors %}
+  <div class="alert alert-danger shadow-sm" role="alert" style="font-weight: bold;">
+    {% for error in form.non_field_errors %}
+      {{ error }}
+    {% endfor %}
+  </div>
+{% endif %}
+
 <form method="POST">
   {% csrf_token %}
 
@@ -88,7 +97,6 @@
   src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_api_key }}&libraries=places&v=beta&callback=initAutocomplete"
   async defer>
 </script>
-
 
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
