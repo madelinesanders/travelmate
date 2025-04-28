@@ -27,8 +27,9 @@ def get_historical(lat, lon, target_date):
         "longitude": lon,
         "start_date": historical_date.isoformat(),
         "end_date": historical_date.isoformat(),
-        "daily": "temperature_2m_max,weathercode",
-        "timezone": "auto"
+        "daily": "temperature_2m_max,temperature_2m_min,weathercode",
+        "timezone": "auto",
+        "past_days": 0
     }
     try:
         res = requests.get(url, params=params)

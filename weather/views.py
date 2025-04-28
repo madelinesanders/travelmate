@@ -81,13 +81,15 @@ def forecast(request, trip_id):
 
     while current <= trip.end_date:
         hist_json = get_historical(trip.latitude, trip.longitude, current)
+        print("📜 Historical JSON:", hist_json)  # <-- Add this line!
         daily = hist_json.get("daily", {})
         if "temperature_2m_max" in daily:
             formatted_date = current.replace(year=current.year - 1).strftime("%B %d, %Y")
             historical_data.append({
                 "date": formatted_date,
                 "raw_date": current.isoformat(),
-                "temp": daily["temperature_2m_max"][0],
+                "temp_max": daily["temperature_2m_max"][0],
+                "temp_min": daily["temperature_2m_min"][0],
                 "description": "Historical (same date last year)",
                 "icon_url": get_icon(daily["weathercode"][0])
             })
