@@ -242,9 +242,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
 <!-- Button Hover Style -->
 <style>
-#packing-list-button:hover,
-#travel-tips-button:hover {
-    background-color: #187bcd; /* darker blue on hover */
+#packing-list-button, #travel-tips-button {
+    background-color: #1E90FF;
+    color: white;
+    padding: 10px 20px;
+    font-weight: bold;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+#packing-list-button:hover, #travel-tips-button:hover {
+    background-color: #187bcd;
+    transform: scale(1.05);
+    box-shadow: 0px 4px 10px rgba(30, 144, 255, 0.5);
 }
 </style>
 
