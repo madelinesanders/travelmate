@@ -6,7 +6,12 @@
 <div class="trip-grid">
   {% for trip in trips %}
     <div class="trip-card">
-      <h3>{{ trip.location }}</h3>
+      <h3>
+        <a href="{% url 'weather_forecast' trip.id %}" class="trip-location-link">
+            {{ trip.location }}
+        </a>
+      </h3>
+
       <p>{{ trip.start_date }} → {{ trip.end_date }}</p>
 
       {% if trip.activities.exists %}
@@ -19,7 +24,11 @@
       </form>
     </div>
   {% empty %}
-    <p>You haven’t created any trips yet!</p>
+    <div class="empty-card text-center">
+      <h4 class="fw-bold">No Trips Yet</h4>
+      <p class="text-muted">Start planning your first adventure!</p>
+      <a href="{% url 'trips.planner' %}" class="btn btn-primary mt-3">Create Trip</a>
+    </div>
   {% endfor %}
 </div>
 
@@ -31,10 +40,10 @@
     margin-top: 20px;
   }
 
-  .trip-card {
+  .trip-card, .empty-card {
     display: block;
     background-color: #f8f8f8;
-    padding: 16px;
+    padding: 24px;
     border-radius: 10px;
     border: 1px solid #ddd;
     text-decoration: none;
@@ -55,6 +64,17 @@
     margin: 4px 0;
   }
 
+  .empty-card h4 {
+    font-size: 1.5rem;
+    margin-bottom: 8px;
+  }
+
+  .empty-card p {
+    font-size: 1rem;
+    margin-bottom: 16px;
+    color: #666;
+  }
+
   .delete-button {
     background-color: #ff4d4d;
     color: white;
@@ -68,6 +88,19 @@
 
   .delete-button:hover {
     background-color: #d93636;
+  }
+
+  .btn-primary {
+    background-color: #1E90FF;
+    border: none;
+    font-weight: bold;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+  }
+
+  .btn-primary:hover {
+    background-color: #187bcd;
+    transform: scale(1.05);
+    box-shadow: 0px 4px 10px rgba(30, 144, 255, 0.5);
   }
 </style>
 {% endblock %}

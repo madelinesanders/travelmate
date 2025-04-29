@@ -70,7 +70,7 @@
         <div class="nav-links">
             {% if user.is_authenticated %}
                 <a href="{% url 'trips.index' %}">My Trips</a>
-                <a href="{% url 'trips.planner' %}">Trip Planner</a>
+                <a href="{% url 'trips.planner' %}">Create Trip</a>
                 <a href="{% url 'password_change' %}">Change Password</a>
                 <a href="{% url 'accounts.logout' %}">Logout ({{ user.username }})</a>
             {% endif %}
