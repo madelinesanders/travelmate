@@ -1,32 +1,12 @@
-
 from django.shortcuts import render, get_object_or_404
 from trips.models import Trip
 from datetime import timedelta, date
-from .open_meteo import get_forecast, get_historical, get_monthly_avg
 from calendar import month_name
 from geopy.geocoders import Nominatim
 from geopy.exc import GeocoderUnavailable
-
-def get_icon(code):
-    mapping = {
-        0: "wi-day-sunny.svg",
-        1: "wi-day-sunny-overcast.svg",
-        2: "wi-day-cloudy.svg",
-        3: "wi-cloudy.svg",
-        45: "wi-day-fog.svg", 48: "wi-day-fog.svg",
-        51: "wi-day-rain.svg", 53: "wi-day-rain.svg", 55: "wi-day-rain.svg",
-        56: "wi-day-rain.svg", 57: "wi-day-rain.svg",
-        61: "wi-day-showers.svg", 63: "wi-day-showers.svg", 65: "wi-day-showers.svg",
-        66: "wi-day-rain-wind.svg", 67: "wi-day-rain-wind.svg",
-        71: "wi-day-snow.svg", 73: "wi-day-snow.svg", 75: "wi-day-snow.svg",
-        77: "wi-day-snow.svg",
-        80: "wi-day-showers.svg", 81: "wi-day-showers.svg", 82: "wi-day-showers.svg",
-        85: "wi-day-snow.svg", 86: "wi-day-snow.svg",
-        95: "wi-day-thunderstorm.svg",
-        96: "wi-day-storm-showers.svg",
-        99: "wi-day-lightning.svg"
-    }
-    return f"/static/icons/{mapping.get(code, 'wi-alien.svg')}"
+from weather.open_meteo import get_monthly_avg
+from travelmate.weather_strategies import ForecastWeatherStrategy, HistoricalWeatherStrategy
+from travelmate.ollama_client import generate_packing_list, generate_travel_tips
 
 def forecast(request, trip_id):
     trip = get_object_or_404(Trip, id=trip_id, user=request.user)
@@ -38,62 +18,18 @@ def forecast(request, trip_id):
     extreme_alerts = []
 
     if trip.start_date <= forecast_window:
-        forecast_end = min(trip.end_date, forecast_window)
-        forecast_json = get_forecast(trip.latitude, trip.longitude, trip.start_date, forecast_end)
+        strategy = ForecastWeatherStrategy()
+        forecast_data, extreme_alerts, current = strategy.fetch_weather(trip, today)
 
-        for i, day in enumerate(forecast_json.get("daily", {}).get("time", [])):
-            max_temp = forecast_json["daily"]["temperature_2m_max"][i]
-            min_temp = forecast_json["daily"]["temperature_2m_min"][i]
-            code = forecast_json["daily"]["weathercode"][i]
-            formatted_date = date.fromisoformat(day).strftime("%B %d, %Y")
+        if current is None:
+            current = trip.start_date
 
-            forecast_data.append({
-                "date": formatted_date,
-                "raw_date": day,
-                "temp_max": max_temp,
-                "temp_min": min_temp,
-                "description": "Forecasted",
-                "icon_url": get_icon(code)
-            })
-
-            if max_temp >= 35:
-                extreme_alerts.append({
-                    "text": f"🔥 High heat on {formatted_date}",
-                    "c": round(max_temp, 1),
-                    "type": "max"
-                })
-            if min_temp <= 0:
-                extreme_alerts.append({
-                    "text": f"❄️ Freezing temperatures on {formatted_date}",
-                    "c": round(min_temp, 1),
-                    "type": "min"
-                })
-            if code in [95, 96, 99]:
-                extreme_alerts.append({
-                    "text": f"⛈️ Thunderstorm risk on {formatted_date}",
-                    "c": None,
-                    "type": "storm"
-                })
-
-        current = forecast_end + timedelta(days=1)
+        if current <= trip.end_date:
+            historical_strategy = HistoricalWeatherStrategy()
+            historical_data, _, _ = historical_strategy.fetch_weather(trip, current)
     else:
-        current = trip.start_date
-
-    while current <= trip.end_date:
-        hist_json = get_historical(trip.latitude, trip.longitude, current)
-        print("📜 Historical JSON:", hist_json)  # <-- Add this line!
-        daily = hist_json.get("daily", {})
-        if "temperature_2m_max" in daily:
-            formatted_date = current.replace(year=current.year - 1).strftime("%B %d, %Y")
-            historical_data.append({
-                "date": formatted_date,
-                "raw_date": current.isoformat(),
-                "temp_max": daily["temperature_2m_max"][0],
-                "temp_min": daily["temperature_2m_min"][0],
-                "description": "Historical (same date last year)",
-                "icon_url": get_icon(daily["weathercode"][0])
-            })
-        current += timedelta(days=1)
+        historical_strategy = HistoricalWeatherStrategy()
+        historical_data, _, _ = historical_strategy.fetch_weather(trip, trip.start_date)
 
     months = {
         month_name[m].lower(): get_monthly_avg(trip.latitude, trip.longitude, m)
@@ -131,9 +67,6 @@ def forecast(request, trip_id):
         "extreme_alerts": extreme_alerts,
     })
 
-from travelmate.ollama_client import generate_packing_list
-from django.http import HttpResponse
-
 def packing_list(request, trip_id):
     trip = get_object_or_404(Trip, id=trip_id, user=request.user)
 
@@ -144,7 +77,6 @@ def packing_list(request, trip_id):
 
         packing_list_text = generate_packing_list(summary, activities)
 
-        # Save the generated packing list
         trip.packing_list = packing_list_text
         trip.save()
     else:
@@ -155,10 +87,6 @@ def packing_list(request, trip_id):
         "packing_list": trip.packing_list,
     })
 
-
-from travelmate.ollama_client import generate_travel_tips  # (we'll define this in a second)
-
-
 def travel_tips(request, trip_id):
     trip = get_object_or_404(Trip, id=trip_id, user=request.user)
 
@@ -167,7 +95,6 @@ def travel_tips(request, trip_id):
         summary = f"Trip to {trip.location} from {trip.start_date} to {trip.end_date}."
         travel_tips_text = generate_travel_tips(summary)
 
-        # Save the generated travel tips
         trip.travel_tips = travel_tips_text
         trip.save()
     else:
@@ -177,4 +104,3 @@ def travel_tips(request, trip_id):
         "trip": trip,
         "travel_tips": trip.travel_tips,
     })
-

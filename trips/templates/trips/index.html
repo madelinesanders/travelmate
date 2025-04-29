@@ -3,6 +3,16 @@
 {% block content %}
 <h2>Your Trips</h2>
 
+\<form method="get" action="" style="margin-bottom: 20px;">
+  <label for="sort" style="font-weight: bold; margin-right: 10px;">Sort by:</label>
+  <select name="sort" id="sort" onchange="this.form.submit()" style="padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc;">
+    <option value="start" {% if request.GET.sort == "start" %}selected{% endif %}>Start Date</option>
+    <option value="end" {% if request.GET.sort == "end" %}selected{% endif %}>End Date</option>
+    <option value="location" {% if request.GET.sort == "location" %}selected{% endif %}>Location</option>
+    <option value="duration" {% if request.GET.sort == "duration" %}selected{% endif %}>Duration</option>
+  </select>
+</form>
+
 <div class="trip-grid">
   {% for trip in trips %}
     <div class="trip-card">

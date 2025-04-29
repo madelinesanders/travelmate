@@ -1,4 +1,5 @@
-import ollama
+
+from .ollama_client_singleton import OllamaClientSingleton
 
 def generate_packing_list(weather_summary, activities):
     prompt = f"""
@@ -17,14 +18,14 @@ Be concise and practical.
     try:
         print("Sending request to Ollama...")
 
-        client = ollama.Client(host='http://localhost:11434')
+        client = OllamaClientSingleton.get_instance()
 
         response = client.chat(
-            model="mistral",  # Or "tinyllama" if you prefer speed
+            model="mistral",
             messages=[{"role": "user", "content": prompt}],
             options={
                 "temperature": 0.2
-                # No num_predict limit here!
+
             }
         )
 
@@ -34,6 +35,7 @@ Be concise and practical.
     except Exception as e:
         print(f"Ollama call failed: {e}")
         return "Sorry, something went wrong while generating your packing list."
+
 
 def generate_travel_tips(summary):
     prompt = f"""
@@ -53,10 +55,10 @@ Keep the advice concise, clear, and organized into sections.
     try:
         print("Sending travel tips request to Ollama...")
 
-        client = ollama.Client(host='http://localhost:11434')
+        client = OllamaClientSingleton.get_instance()
 
         response = client.chat(
-            model="mistral",  # Or tinyllama if you prefer speed
+            model="mistral",
             messages=[{"role": "user", "content": prompt}],
             options={
                 "temperature": 0.3
