@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+  <div class="text-center mb-4">
+    <h2 class="fw-bold">Create a New Trip</h2>
+    <p class="text-muted">Plan your next adventure!</p>
+  </div>
+
+  <!-- Show Form-wide Errors -->
+  {% if form.non_field_errors %}
+    <div class="alert alert-danger shadow-sm" role="alert">
+      {% for error in form.non_field_errors %}
+        {{ error }}
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <form method="POST" class="bg-white p-4 rounded shadow-sm" id="trip-form">
+    {% csrf_token %}
+
+    <!-- Location Input -->
+    <div class="mb-3">
+      <label for="autocomplete" class="form-label fw-semibold">Location</label>
+      <div id="place-autocomplete-container" class="form-control p-2" style="height: auto;"></div>
+      <input type="hidden" name="location" id="location">
+      <input type="hidden" name="latitude" id="latitude">
+      <input type="hidden" name="longitude" id="longitude">
+    </div>
+
+    <!-- Start Date -->
+    <div class="mb-3">
+      {{ form.start_date.label_tag }}
+      {{ form.start_date }}
+      {{ form.start_date.errors }}
+    </div>
+
+    <!-- End Date -->
+    <div class="mb-3">
+      {{ form.end_date.label_tag }}
+      {{ form.end_date }}
+      {{ form.end_date.errors }}
+    </div>
+
+    <!-- Activities -->
+    <div class="mb-3">
+      {{ form.activities.label_tag }}
+      {{ form.activities }}
+      {{ form.activities.errors }}
+    </div>
+
+    <!-- Submit Button -->
+    <div class="text-center">
+      <button type="submit" class="btn btn-primary btn-lg mt-3">
+        Save Trip
+      </button>
+    </div>
+  </form>
+</div>
+
+<!-- Select2 and Google Places Setup -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<script src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_api_key }}&libraries=places&v=beta&callback=initAutocomplete" async defer></script>
+
+<script>
+  async function initAutocomplete() {
+    await google.maps.importLibrary("places");
+    const placeAutocomplete = new google.maps.places.PlaceAutocompleteElement();
+    placeAutocomplete.id = "autocomplete";
+    document.getElementById("place-autocomplete-container").appendChild(placeAutocomplete);
+
+    placeAutocomplete.addEventListener("gmp-select", async ({ placePrediction }) => {
+      const place = placePrediction.toPlace();
+      await place.fetchFields({ fields: ["displayName", "formattedAddress", "location"] });
+      document.getElementById("location").value = place.formattedAddress || place.displayName || "";
+      document.getElementById("latitude").value = place.location.lat();
+      document.getElementById("longitude").value = place.location.lng();
+    });
+  }
+
+  $(document).ready(function () {
+    $('.activity-select').select2({
+      placeholder: "Select activities...",
+      width: '100%',
+      allowClear: true
+    });
+  });
+</script>
+
+<script>
+document.getElementById('trip-form').addEventListener('submit', function(e) {
+    const locationField = document.getElementById('location');
+    const activitiesField = document.querySelector('.activity-select');
+
+    // Check if location is empty
+    if (!locationField.value.trim()) {
+        e.preventDefault();
+        alert('Please select a location.');
+        return;
+    }
+
+    // Check if at least one activity is selected
+    if (!activitiesField.value || activitiesField.selectedOptions.length === 0) {
+        e.preventDefault();
+        alert('Please select at least one activity.');
+        return;
+    }
+});
+</script>
+
+{% endblock %}

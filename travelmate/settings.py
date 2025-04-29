@@ -11,6 +11,15 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 import os
 from pathlib import Path
+from decouple import config
+from dotenv import load_dotenv
+load_dotenv()
+
+
+GOOGLE_MAPS_API_KEY = config("GOOGLE_MAPS_API_KEY")
+OPENWEATHER_API_KEY = os.getenv("OPENWEATHER_API_KEY")
+TOMORROW_API_KEY = os.getenv("TOMORROW_API_KEY")
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -31,6 +40,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
@@ -55,7 +65,9 @@ ROOT_URLCONF = "travelmate.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [os.path.join(BASE_DIR, 'travelmate/templates')],
+        "DIRS": [
+            os.path.join(BASE_DIR, 'travelmate/templates'),
+            os.path.join(BASE_DIR, 'weather/templates')],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -122,3 +134,9 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, "static"),
+]
+
+
