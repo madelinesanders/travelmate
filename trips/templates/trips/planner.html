@@ -16,7 +16,7 @@
     </div>
   {% endif %}
 
-  <form method="POST" class="bg-white p-4 rounded shadow-sm">
+  <form method="POST" class="bg-white p-4 rounded shadow-sm" id="trip-form">
     {% csrf_token %}
 
     <!-- Location Input -->
@@ -89,4 +89,26 @@
     });
   });
 </script>
+
+<script>
+document.getElementById('trip-form').addEventListener('submit', function(e) {
+    const locationField = document.getElementById('location');
+    const activitiesField = document.querySelector('.activity-select');
+
+    // Check if location is empty
+    if (!locationField.value.trim()) {
+        e.preventDefault();
+        alert('Please select a location.');
+        return;
+    }
+
+    // Check if at least one activity is selected
+    if (!activitiesField.value || activitiesField.selectedOptions.length === 0) {
+        e.preventDefault();
+        alert('Please select at least one activity.');
+        return;
+    }
+});
+</script>
+
 {% endblock %}
